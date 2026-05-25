@@ -126,12 +126,14 @@ label {
 </div><script>
 let selections=[];
 let currentAnswer=0;
+let usedQuestions=new Set();
 
 function startQuiz(){
   let selected=document.querySelectorAll('#menu input:checked');
   if(selected.length===0){alert("Select options");return;}
 
   selections=Array.from(selected).map(x=>x.value);
+  usedQuestions.clear();
 
   document.getElementById("menu").style.display="none";
   document.getElementById("quiz").style.display="block";
@@ -144,34 +146,46 @@ function stopQuiz(){
   document.getElementById("quiz").style.display="none";
 }
 
+function makeKey(q){
+  return q;
+}
+
 function nextQuestion(){
   let fb=document.getElementById("feedback");
   fb.className="feedback-box";
   fb.innerText="";
 
-  let pick=selections[Math.floor(Math.random()*selections.length)];
-  let [type,min,max]=pick.split('-');
-
-  let a=Math.floor(Math.random()*(+max-+min+1))+ +min;
-
-  if(type==='square'){
-    currentAnswer=a*a;
-    document.getElementById("question").innerText=`${a}² = ?`;
+  if(usedQuestions.size>=300){
+    fb.innerText="No more unique questions 🎯";
+    return;
   }
-  else if(type==='cube'){
-    currentAnswer=a*a*a;
-    document.getElementById("question").innerText=`${a}³ = ?`;
-  }
-  else{
-    // FIX: avoid 1 and trivial multiplication
-    let a=Math.floor(Math.random()*(+max-+min+1))+ +min;
-    if(a < 2) a = 2;
 
-    let b=Math.floor(Math.random()*9)+2;
+  let pick,type,min,max,a,b,question,answer;
 
-    currentAnswer=a*b;
-    document.getElementById("question").innerText=`${a} × ${b} = ?`;
-  }
+  do{
+    pick=selections[Math.floor(Math.random()*selections.length)];
+    [type,min,max]=pick.split('-');
+
+    a=Math.floor(Math.random()*(+max-+min+1))+ +min;
+
+    if(type==='square'){
+      answer=a*a;
+      question=`${a}² = ?`;
+    }else if(type==='cube'){
+      answer=a*a*a;
+      question=`${a}³ = ?`;
+    }else{
+      let b=Math.floor(Math.random()*9)+2;
+      answer=a*b;
+      question=`${a} × ${b} = ?`;
+    }
+
+  }while(usedQuestions.has(makeKey(question)));
+
+  usedQuestions.add(makeKey(question));
+
+  currentAnswer=answer;
+  document.getElementById("question").innerText=question;
 
   let options=[currentAnswer];
 
