@@ -1,0 +1,206 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Random Quiz App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg,#eef2f3,#cfd9df);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }.container {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  width: 390px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  text-align: center;
+}
+
+h2 { margin-bottom: 10px; }
+
+.feedback-box{
+  min-height:40px;
+  margin-bottom:10px;
+  font-weight:bold;
+  padding:8px;
+  border-radius:8px;
+}
+
+.correct-msg{ background:#d4edda; color:#155724; }
+.wrong-msg{ background:#f8d7da; color:#721c24; }
+
+.section {
+  text-align: left;
+  margin: 10px 0;
+  padding: 10px;
+  background: #fafafa;
+  border-radius: 10px;
+}
+
+.section-title {
+  font-weight: bold;
+  margin-bottom: 8px;
+  display: block;
+}
+
+label {
+  display: block;
+  margin: 5px 0;
+  cursor: pointer;
+}
+
+.btn {
+  margin-top: 10px;
+  padding: 10px;
+  width: 100%;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.start { background: green; color: white; }
+.stop { background: red; color: white; }
+
+.quiz { display: none; }
+
+.question-box{
+  font-size:20px;
+  margin:10px 0;
+  font-weight:bold;
+}
+
+.option {
+  background: #eee;
+  margin: 6px 0;
+  padding: 12px;
+  cursor: pointer;
+  border-radius: 10px;
+  transition:0.2s;
+}
+
+.option:hover{ transform:scale(1.02); }
+
+.correct { background: #28a745 !important; color:white; }
+.wrong { background: #dc3545 !important; color:white; }
+
+  </style>
+</head>
+<body><div class="container">
+  <h2>Random Quiz App</h2>  <!-- MENU -->  <div id="menu"><div class="section">
+  <span class="section-title">✖ Multiplication (Table Practice)</span>
+  <label><input type="checkbox" value="mul-1-10"> 1 - 10</label>
+  <label><input type="checkbox" value="mul-11-20"> 11 - 20</label>
+  <label><input type="checkbox" value="mul-21-30"> 21 - 30</label>
+</div>
+
+<div class="section">
+  <span class="section-title">🔢 Square</span>
+  <label><input type="checkbox" value="square-1-10"> 1 - 10</label>
+  <label><input type="checkbox" value="square-11-20"> 11 - 20</label>
+  <label><input type="checkbox" value="square-21-30"> 21 - 30</label>
+</div>
+
+<div class="section">
+  <span class="section-title">🔢 Cube</span>
+  <label><input type="checkbox" value="cube-1-10"> 1 - 10</label>
+  <label><input type="checkbox" value="cube-11-20"> 11 - 20</label>
+  <label><input type="checkbox" value="cube-21-30"> 21 - 30</label>
+</div>
+
+<button class="btn start" onclick="startQuiz()">Play</button>
+
+  </div>  <!-- QUIZ -->  <div id="quiz" class="quiz"><div id="feedback" class="feedback-box"></div>
+
+<div class="question-box" id="question"></div>
+
+<div id="options"></div>
+
+<button class="btn stop" onclick="stopQuiz()">Stop</button>
+
+  </div>
+</div><script>
+let selections=[];
+let currentAnswer=0;
+
+function startQuiz(){
+  let selected=document.querySelectorAll('#menu input:checked');
+  if(selected.length===0){alert("Select options");return;}
+
+  selections=Array.from(selected).map(x=>x.value);
+
+  document.getElementById("menu").style.display="none";
+  document.getElementById("quiz").style.display="block";
+
+  nextQuestion();
+}
+
+function stopQuiz(){
+  document.getElementById("menu").style.display="block";
+  document.getElementById("quiz").style.display="none";
+}
+
+function nextQuestion(){
+  let fb=document.getElementById("feedback");
+  fb.className="feedback-box";
+  fb.innerText="";
+
+  let pick=selections[Math.floor(Math.random()*selections.length)];
+  let [type,min,max]=pick.split('-');
+
+  let a=Math.floor(Math.random()*(+max-+min+1))+ +min;
+
+  if(type==='square'){
+    currentAnswer=a*a;
+    document.getElementById("question").innerText=`${a}² = ?`;
+  }
+  else if(type==='cube'){
+    currentAnswer=a*a*a;
+    document.getElementById("question").innerText=`${a}³ = ?`;
+  }
+  else{
+    // TABLE STYLE MULTIPLICATION FIXED
+    let b=Math.floor(Math.random()*10)+1;
+    currentAnswer=a*b;
+    document.getElementById("question").innerText=`${a} × ${b} = ?`;
+  }
+
+  let options=[currentAnswer];
+
+  while(options.length<4){
+    let wrong=currentAnswer+Math.floor(Math.random()*20-10);
+    if(!options.includes(wrong)&&wrong>0)options.push(wrong);
+  }
+
+  options.sort(()=>Math.random()-0.5);
+
+  let html="";
+  options.forEach(opt=>{
+    html+=`<div class='option' onclick='checkAnswer(this,${opt})'>${opt}</div>`;
+  });
+
+  document.getElementById("options").innerHTML=html;
+}
+
+function checkAnswer(el,val){
+  let fb=document.getElementById("feedback");
+
+  if(val===currentAnswer){
+    el.classList.add("correct");
+    fb.classList.add("correct-msg");
+    fb.classList.remove("wrong-msg");
+    fb.innerText="Correct Answer 🎉";
+    setTimeout(nextQuestion,700);
+  }else{
+    el.classList.add("wrong");
+    fb.classList.add("wrong-msg");
+    fb.classList.remove("correct-msg");
+    fb.innerText="Wrong Answer ❌";
+  }
+}
+</script></body>
+</html>
